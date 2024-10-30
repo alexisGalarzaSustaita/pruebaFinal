@@ -15,16 +15,13 @@ typedef struct Node {
 Node *createNode(const char *ruleIdentifier, const char *production);
 void appendNode(Node **head, const char *ruleIdentifier, const char *production);
 void freeLinkedList(Node *head);
-Node *createLinkedList(FILE *file);
+Node* createLinkedList(FILE *file);
 void printList(Node *head);
-
 void splitLine(const char *line, char *ruleIdentifier, char *production);
-
-Node *findNode(Node *head, const char *ruleIdentifier);
+Node* findNode(Node *head, const char *ruleIdentifier);
 void appendProduction(Node *node, const char *production);
 void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *production);
-
-void eliminaEspacios(Node *head);
+void eliminateSpacesAndPipes(Node *head);
+void eliminateAndGroupRuleIdentifier(Node *head);
 void keys(Node *head);
-void processProductions(Node *head);
-void replacesSymbols(Node *head);
+void agregarProducciones(Node* head);

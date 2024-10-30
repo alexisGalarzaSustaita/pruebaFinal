@@ -1,28 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "main.h"
 
-#define MAX_LINE_LENGTH 100
-
-typedef struct Node {
-    char *ruleIdentifier;
-    char *production;
-    struct Node *next;
-} Node;
-
-// Function prototypes
-Node *createNode(const char *ruleIdentifier, const char *production);
-void appendNode(Node **head, const char *ruleIdentifier, const char *production);
-void freeLinkedList(Node *head);
-Node *createLinkedList(FILE *file);
-void printList(Node *head);
-void splitLine(const char *line, char *ruleIdentifier, char *production);
-Node *findNode(Node *head, const char *ruleIdentifier);
-void appendProduction(Node *node, const char *production);
-void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *production);
-void eliminaEspaciosYpipes(Node *head);
-void agruparProducciones(Node *head);
-void reemplazarConcurrencias(Node *head);
 
 int main() {
     FILE *grammar = fopen("gramatica2.txt", "r");
@@ -146,82 +123,141 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
     }
 }
 
-// Function to eliminate spaces and pipes
-void eliminaEspaciosYpipes(Node *head) {
+void eliminateSpacesAndPipes(Node *head) {
     Node *current = head;
+
     while (current != NULL) {
-        int len = strlen(current->production);
-        char *line = (char *)malloc(len + 1);
+        char *production = current->production;
+        char *newProduction = (char *)malloc(strlen(production) + 1);
         int count1 = 0, count2 = 0;
 
-        while (count1 < len) {
-            if (current->production[count1] != ' ' && current->production[count1] != '|') {
-                line[count2++] = current->production[count1];
+        while (production[count1] != '\0') {
+            if (production[count1] != ' ' && production[count1] != '|') {
+                newProduction[count2++] = production[count1];
             }
             count1++;
         }
-        line[count2] = '\0';
 
-        free(current->production);
-        current->production = line;
+        newProduction[count2] = '\0';
+        strcpy(current->production, newProduction);
+        free(newProduction);
+
         current = current->next;
     }
 }
 
-// Function to group productions
-void agruparProducciones(Node *head) {
+
+void eliminateAndGroupRuleIdentifier(Node *head) {
     Node *current = head;
 
     while (current != NULL) {
-        char updatedProduction[MAX_LINE_LENGTH] = "";
         char *production = current->production;
-        size_t ruleLen = strlen(current->ruleIdentifier);
+        char *newProduction = (char *)malloc(strlen(production) + 1);
+        int count1 = 0, count2 = 0;
+        int lastOccurrence = 0;
 
-        int count1 = 0;
-        while (count1 < strlen(production)) {
-            if (strncmp(&production[count1], current->ruleIdentifier, ruleLen) == 0) {
-                if (count1 > 0) {
-                    strncat(updatedProduction, "(", 1);
-                    strncat(updatedProduction, &production[count1 - 1], 1);
-                    strncat(updatedProduction, ")", 1);
+        while (production[count1] != '\0') {
+            if (production[count1] == current->ruleIdentifier[0]) {
+                if (!lastOccurrence && count1 > 0) {
+                    newProduction[count2++] = '(';
+                    newProduction[count2++] = production[count1 - 1];
+                    newProduction[count2++] = '|';
+                    newProduction[count2++] = ')';
                 }
-                strcat(updatedProduction, "{");
-                strncat(updatedProduction, current->ruleIdentifier, ruleLen);
-                strcat(updatedProduction, "}");
-                count1 += ruleLen;
-            } else {
-                strncat(updatedProduction, &production[count1], 1);
                 count1++;
+            } else {
+                newProduction[count2++] = production[count1++];
             }
+            lastOccurrence = 1;
         }
-        free(current->production);
-        current->production = strdup(updatedProduction);
+
+        newProduction[count2++] = current->ruleIdentifier[0];
+        newProduction[count2] = '\0';
+
+        strcpy(current->production, newProduction);
+        free(newProduction);
+
         current = current->next;
     }
 }
 
-// Function to replace occurrences of other ruleIdentifiers in productions
-void reemplazarConcurrencias(Node *head) {
+
+void keys(Node *head) {
     Node *current = head;
 
     while (current != NULL) {
-        char updatedProduction[MAX_LINE_LENGTH] = "";
         char *production = current->production;
-        for (int i = 0; i < strlen(production); i++) {
-            if (production[i] == '{') {
-                // Ignore the opening brace
-                while (i < strlen(production) && production[i] != '}') {
-                    i++;
+        char *newProduction = (char *)malloc(strlen(production) + 1);
+        int count1 = 0, count2 = 0;
+        int firstNT = 0;
+        int lastNT = 0;
+
+        while (production[count1] != '\0') {
+            if (isalpha(production[count1])) {
+                if (!firstNT) {
+                    firstNT = count1;
                 }
-                if (i < strlen(production) && production[i] == '}') {
-                    // Ignore the closing brace
-                    continue;
+                lastNT = count1;
+            } else if (firstNT && lastNT != firstNT) {
+                newProduction[count2++] = '{';
+                strncpy(newProduction + count2, production + firstNT, lastNT - firstNT + 1);
+                count2 += lastNT - firstNT + 1;
+                newProduction[count2++] = '}';
+                firstNT = 0;
+                lastNT = 0;
+            } else {
+                newProduction[count2++] = production[count1];
+            }
+            count1++;
+        }
+
+        if (firstNT && lastNT != firstNT) {
+            newProduction[count2++] = '{';
+            strncpy(newProduction + count2, production + firstNT, lastNT - firstNT + 1);
+            count2 += lastNT - firstNT + 1;
+            newProduction[count2++] = '}';
+        }
+
+        newProduction[count2] = '\0';
+        strcpy(current->production, newProduction);
+        free(newProduction);
+
+        current = current->next;
+    }
+}
+
+
+void agregarProducciones(Node* head) {
+    char producciones[100][100];
+    int numProducciones = 0;
+
+    Node* current = head;
+    while (current != NULL) {
+        strcpy(producciones[numProducciones], current->production);
+        numProducciones++;
+        current = current->next;
+    }
+
+    current = head;
+    while (current != NULL) {
+        char nuevaProduccion[100];
+        strcpy(nuevaProduccion, current->production);
+
+        char *token, *saveptr1;
+        token = strtok_r(nuevaProduccion, " ", &saveptr1);
+        while (token != NULL) {
+            if (isalpha(*token) && strstr(nuevaProduccion, token) == token) {
+                for (int i = 0; i < numProducciones; i++) {
+                    if (strcmp(token, producciones[i]) == 0) {
+                        strcat(nuevaProduccion, producciones[i]);
+                        break;
+                    }
                 }
             }
-            strncat(updatedProduction, &production[i], 1);
+            token = strtok_r(NULL, " ", &saveptr1);
         }
-        free(current->production);
-        current->production = strdup(updatedProduction);
+
+        strcpy(current->production, nuevaProduccion);
         current = current->next;
     }
 }
