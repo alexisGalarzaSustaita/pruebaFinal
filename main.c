@@ -1,9 +1,31 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LINE_LENGTH 100
+
+typedef struct Node {
+    char *ruleIdentifier;
+    char *production;
+    struct Node *next;
+} Node;
+
+// Function prototypes
+Node *createNode(const char *ruleIdentifier, const char *production);
+void appendNode(Node **head, const char *ruleIdentifier, const char *production);
+void freeLinkedList(Node *head);
+Node *createLinkedList(FILE *file);
+void printList(Node *head);
+void splitLine(const char *line, char *ruleIdentifier, char *production);
+Node *findNode(Node *head, const char *ruleIdentifier);
+void appendProduction(Node *node, const char *production);
+void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *production);
+void eliminaEspaciosYpipes(Node *head);
+void agruparProducciones(Node *head);
+void reemplazarConcurrencias(Node *head);
 
 int main() {
-    
-    FILE *grammar = fopen("gramatica1.txt", "r");
-
+    FILE *grammar = fopen("gramatica2.txt", "r");
     if (grammar == NULL) {
         perror("Error opening the file");
         return 1;
@@ -13,9 +35,9 @@ int main() {
     fclose(grammar);
 
     // Procesar las producciones en orden
-    eliminaEspacios(head);
-    keys(head);
-    processProductions(head);
+    eliminaEspaciosYpipes(head);
+    agruparProducciones(head);
+    reemplazarConcurrencias(head);
 
     // Imprimir la lista enlazada después del procesamiento
     printList(head);
@@ -38,9 +60,8 @@ Node *createNode(const char *ruleIdentifier, const char *production) {
 // Function to append a node to the list
 void appendNode(Node **head, const char *ruleIdentifier, const char *production) {
     Node *newNode = createNode(ruleIdentifier, production);
-
     if (*head == NULL) {
-        *head = newNode; 
+        *head = newNode;
     } else {
         Node *current = *head;
         while (current->next != NULL) {
@@ -83,7 +104,6 @@ Node* createLinkedList(FILE *file) {
 // Function to print the linked list
 void printList(Node *head) {
     Node *current = head;
-
     while (current != NULL) {
         printf("%s -> %s\n", current->ruleIdentifier, current->production);
         current = current->next;
@@ -126,16 +146,16 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
     }
 }
 
-void eliminaEspacios(Node *head) {
+// Function to eliminate spaces and pipes
+void eliminaEspaciosYpipes(Node *head) {
     Node *current = head;
-
     while (current != NULL) {
         int len = strlen(current->production);
         char *line = (char *)malloc(len + 1);
-
         int count1 = 0, count2 = 0;
+
         while (count1 < len) {
-            if (current->production[count1] != ' ') {
+            if (current->production[count1] != ' ' && current->production[count1] != '|') {
                 line[count2++] = current->production[count1];
             }
             count1++;
@@ -148,79 +168,60 @@ void eliminaEspacios(Node *head) {
     }
 }
 
-void keys(Node *head) {
+// Function to group productions
+void agruparProducciones(Node *head) {
     Node *current = head;
 
     while (current != NULL) {
         char updatedProduction[MAX_LINE_LENGTH] = "";
         char *production = current->production;
-        char *ruleIdentifier = current->ruleIdentifier;
-        size_t ruleLen = strlen(ruleIdentifier);
+        size_t ruleLen = strlen(current->ruleIdentifier);
 
         int count1 = 0;
         while (count1 < strlen(production)) {
-            if (strncmp(&production[count1], ruleIdentifier, ruleLen) == 0) {
+            if (strncmp(&production[count1], current->ruleIdentifier, ruleLen) == 0) {
+                if (count1 > 0) {
+                    strncat(updatedProduction, "(", 1);
+                    strncat(updatedProduction, &production[count1 - 1], 1);
+                    strncat(updatedProduction, ")", 1);
+                }
                 strcat(updatedProduction, "{");
-                strncat(updatedProduction, ruleIdentifier, ruleLen);
+                strncat(updatedProduction, current->ruleIdentifier, ruleLen);
                 strcat(updatedProduction, "}");
                 count1 += ruleLen;
             } else {
-                strncat(updatedProduction, production + count1, 1);
+                strncat(updatedProduction, &production[count1], 1);
                 count1++;
             }
         }
-        strcpy(current->production, updatedProduction);
+        free(current->production);
+        current->production = strdup(updatedProduction);
         current = current->next;
     }
 }
 
-void processProductions(Node *head) {
-    Node *current = head;
-
-    while (current != NULL) {
-        char *production = current->production;
-        char updatedProduction[MAX_LINE_LENGTH] = "(";
-        
-        for (int i = 0; i < strlen(production); i++) {
-            if (production[i] == '|') {
-                strcat(updatedProduction, ")");
-                strcat(updatedProduction, "|(");
-            } else {
-                strncat(updatedProduction, &production[i], 1);
-            }
-        }
-        
-        strcat(updatedProduction, ")");
-        strcpy(current->production, updatedProduction);
-
-        current = current->next;
-    }
-}
-
-void replaceSymbols(Node *head) {
+// Function to replace occurrences of other ruleIdentifiers in productions
+void reemplazarConcurrencias(Node *head) {
     Node *current = head;
 
     while (current != NULL) {
         char updatedProduction[MAX_LINE_LENGTH] = "";
         char *production = current->production;
-
         for (int i = 0; i < strlen(production); i++) {
-            if (production[i] == '(') {
-                strcat(updatedProduction, "*");
-            } else if (production[i] == ')') {
-                strcat(updatedProduction, "+");
-            } else if (production[i] == '{') {
-                strcat(updatedProduction, "*");
-            } else if (production[i] == '}') {
-                strcat(updatedProduction, "+");
-            } else {
-                strncat(updatedProduction, &production[i], 1);
+            if (production[i] == '{') {
+                // Ignore the opening brace
+                while (i < strlen(production) && production[i] != '}') {
+                    i++;
+                }
+                if (i < strlen(production) && production[i] == '}') {
+                    // Ignore the closing brace
+                    continue;
+                }
             }
+            strncat(updatedProduction, &production[i], 1);
         }
-
-        // Actualizar la producción en el nodo actual
-        free(current->production); // Liberar memoria de la producción antigua
-        current->production = strdup(updatedProduction); // Asignar la nueva producción
+        free(current->production);
+        current->production = strdup(updatedProduction);
         current = current->next;
     }
 }
