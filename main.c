@@ -196,3 +196,31 @@ void processProductions(Node *head) {
         current = current->next;
     }
 }
+
+void replaceSymbols(Node *head) {
+    Node *current = head;
+
+    while (current != NULL) {
+        char updatedProduction[MAX_LINE_LENGTH] = "";
+        char *production = current->production;
+
+        for (int i = 0; i < strlen(production); i++) {
+            if (production[i] == '(') {
+                strcat(updatedProduction, "*");
+            } else if (production[i] == ')') {
+                strcat(updatedProduction, "+");
+            } else if (production[i] == '{') {
+                strcat(updatedProduction, "*");
+            } else if (production[i] == '}') {
+                strcat(updatedProduction, "+");
+            } else {
+                strncat(updatedProduction, &production[i], 1);
+            }
+        }
+
+        // Actualizar la producción en el nodo actual
+        free(current->production); // Liberar memoria de la producción antigua
+        current->production = strdup(updatedProduction); // Asignar la nueva producción
+        current = current->next;
+    }
+}

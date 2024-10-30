@@ -27,3 +27,4 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
 void eliminaEspacios(Node *head);
 void keys(Node *head);
 void processProductions(Node *head);
+void replacesSymbols(Node *head);
