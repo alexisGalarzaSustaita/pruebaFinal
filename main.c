@@ -11,7 +11,10 @@ int main() {
     Node *head = createLinkedList(grammar);
     
     fclose(grammar);
-
+    eliminateSpacesAndPipes(head);
+    eliminateAndGroupRuleIdentifier(head);
+    keys(head);
+    agregarProducciones(head);
     // Output the contents of the linked list
     printList(head);
 
@@ -182,33 +185,24 @@ void eliminateAndGroupRuleIdentifier(Node *head) {
     }
 }
 
-// Agrega llaves a no terminales
-void keys(Node *head) {
+// Función para agregar llaves alrededor de no terminales
+void addBracesToNonTerminals(Node *head) {
     Node *current = head;
     while (current != NULL) {
         char *production = current->production;
-        char *newProduction = (char *)malloc(strlen(production) * 2);  // Espacio adicional para las llaves
+        char *newProduction = (char *)malloc(strlen(production) * 2);  // Espacio adicional para llaves
         int i = 0, j = 0;
-        int firstNT = -1;
-
+        
         while (production[i] != '\0') {
-            if (isalpha(production[i])) {
-                if (firstNT == -1) firstNT = i;
-            } else if (firstNT != -1) {
+            if (isalpha(production[i])) {  // Detecta inicio de no terminal
                 newProduction[j++] = '{';
-                strncpy(newProduction + j, production + firstNT, i - firstNT);
-                j += i - firstNT;
+                while (isalpha(production[i])) {
+                    newProduction[j++] = production[i++];
+                }
                 newProduction[j++] = '}';
-                firstNT = -1;
+            } else {
+                newProduction[j++] = production[i++];
             }
-            newProduction[j++] = production[i++];
-        }
-
-        if (firstNT != -1) {  // Cierra cualquier no terminal al final
-            newProduction[j++] = '{';
-            strncpy(newProduction + j, production + firstNT, i - firstNT);
-            j += i - firstNT;
-            newProduction[j++] = '}';
         }
 
         newProduction[j] = '\0';
@@ -218,23 +212,24 @@ void keys(Node *head) {
     }
 }
 
-// Mejora la función agregarProducciones
-void agregarProducciones(Node* head) {
-    Node* current = head;
+// Función para agregar producciones basadas en identificadores existentes
+void integrateProductions(Node *head) {
+    Node *current = head;
     while (current != NULL) {
         char *production = current->production;
-        char nuevaProduccion[1000];
-        strcpy(nuevaProduccion, production);
+        char integratedProduction[1000];
+        strcpy(integratedProduction, production);
 
         Node *temp = head;
         while (temp != NULL) {
-            if (strstr(production, temp->ruleIdentifier) != NULL) {
-                strcat(nuevaProduccion, temp->production);
+            if (temp != current && strstr(production, temp->ruleIdentifier) != NULL) {
+                strcat(integratedProduction, " | ");
+                strcat(integratedProduction, temp->production);
             }
             temp = temp->next;
         }
 
-        strcpy(current->production, nuevaProduccion);
+        strcpy(current->production, integratedProduction);
         current = current->next;
     }
-}    
+}
