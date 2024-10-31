@@ -13,8 +13,8 @@ int main() {
     fclose(grammar);
     eliminateSpacesAndPipes(head);
     eliminateAndGroupRuleIdentifier(head);
-    keys(head);
-    agregarProducciones(head);
+    addBracesToNonTerminals(head);
+    integrateProductions(head);
     // Output the contents of the linked list
     printList(head);
 
