@@ -24,4 +24,5 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
 void eliminateSpacesAndPipes(Node *head);
 void eliminateAndGroupRuleIdentifier(Node *head);
 void addBracesToNonTerminals(Node *head);
+void replaceIdentifiers(Node *head, char **production, const char *ruleIdentifier);
 void integrateProductions(Node *head);
