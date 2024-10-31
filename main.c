@@ -1,7 +1,7 @@
-#include "main.h" 
+#include "main.h"
 
 int main() {
-    FILE *grammar = fopen("gramatica1.txt", "r");
+    FILE *grammar = fopen("gramatica.txt", "r");
 
     if (grammar == NULL) {
         perror("Error opening the file");
@@ -11,6 +11,7 @@ int main() {
     Node *head = createLinkedList(grammar);
     
     fclose(grammar);
+
     eliminateSpacesAndPipes(head);
     eliminateAndGroupRuleIdentifier(head);
     addBracesToNonTerminals(head);
@@ -134,6 +135,8 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
         }
     }
 }
+
+
 
 // Corrige eliminar espacios y tuberías solo cuando sea necesario
 void eliminateSpacesAndPipes(Node *head) {
