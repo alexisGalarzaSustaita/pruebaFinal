@@ -16,16 +16,16 @@ int main() {
     eliminateAndGroupRuleIdentifier(head);
     addBracesToNonTerminals(head);
     integrateProductions(head);
-    // Output the contents of the linked list
+   
     printList(head);
 
-    // Free the linked list
+   
     freeLinkedList(head);    
 
     return 0;
 }
 
-// Function to create a new node
+
 Node *createNode(const char *ruleIdentifier, const char *production) {
     Node *newNode = (Node *)malloc(sizeof(Node));
     newNode->ruleIdentifier = strdup(ruleIdentifier);
@@ -34,7 +34,7 @@ Node *createNode(const char *ruleIdentifier, const char *production) {
     return newNode;
 }
 
-// Function to append a node to the list
+
 void appendNode(Node **head, const char *ruleIdentifier, const char *production) {
     Node *newNode = createNode(ruleIdentifier, production);
 
@@ -49,7 +49,7 @@ void appendNode(Node **head, const char *ruleIdentifier, const char *production)
     }
 }
 
-// Function to free the linked list
+
 void freeLinkedList(Node *head) {
     Node *current = head;
     Node *next;
@@ -63,7 +63,7 @@ void freeLinkedList(Node *head) {
     }
 }
 
-// Function to create a linked list from the file
+
 Node* createLinkedList(FILE *file) {
     Node *head = NULL; 
     char line[MAX_LINE_LENGTH];
@@ -80,7 +80,7 @@ Node* createLinkedList(FILE *file) {
     return head;
 }
 
-// Function to print the linked list
+
 void printList(Node *head) {
     Node *current = head;
 
@@ -138,7 +138,7 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
 
 
 
-// Corrige eliminar espacios y tuberías solo cuando sea necesario
+
 void eliminateSpacesAndPipes(Node *head) {
     Node *current = head;
     while (current != NULL) {
@@ -159,7 +159,7 @@ void eliminateSpacesAndPipes(Node *head) {
     }
 }
 
-// Agrupa reglas con identificadores similares usando paréntesis de forma condicional
+
 void eliminateAndGroupRuleIdentifier(Node *head) {
     Node *current = head;
     while (current != NULL) {
@@ -187,7 +187,7 @@ void eliminateAndGroupRuleIdentifier(Node *head) {
     }
 }
 
-// Agrega llaves solo alrededor de no terminales válidos
+
 void addBracesToNonTerminals(Node *head) {
     Node *current = head;
     while (current != NULL) {
@@ -214,7 +214,7 @@ void addBracesToNonTerminals(Node *head) {
     }
 }
 
-// Optimiza la integración de producciones para evitar duplicados
+
 void integrateProductionsRecursive(Node *current, Node *head) {
     if (current == NULL) {
         return;
@@ -227,10 +227,10 @@ void integrateProductionsRecursive(Node *current, Node *head) {
     Node *temp = head;
     while (temp != NULL) {
         if (temp != current && strstr(production, temp->ruleIdentifier) != NULL) {
-            // Find the insertion point: the position of the rule identifier in the current production
+            
             char *insertionPoint = strstr(integratedProduction, temp->ruleIdentifier);
 
-            // Concatenate the matching production at the insertion point
+            
             strcat(insertionPoint, " | ");
             strcat(insertionPoint, temp->production);
         }
