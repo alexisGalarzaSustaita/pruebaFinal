@@ -15,7 +15,7 @@ int main() {
     eliminateSpacesAndPipes(head);
     eliminateAndGroupRuleIdentifier(head);
     addBracesToNonTerminals(head);
-    //integrateProductions(head);
+    integrateProductions(head);
     // Output the contents of the linked list
     printList(head);
 
