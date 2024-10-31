@@ -14,7 +14,7 @@ int main() {
 
     eliminateSpacesAndPipes(head);
     eliminateAndGroupRuleIdentifier(head);
-    addBracesToNonTerminals(head);
+    //addBracesToNonTerminals(head);
     //integrateProductions(head);
     // Output the contents of the linked list
     printList(head);
@@ -166,27 +166,30 @@ void eliminateAndGroupRuleIdentifier(Node *head) {
         char *production = current->production;
         char *newProduction = (char *)malloc(strlen(production) * 2);
         int i = 0, j = 0;
+
+        // Skip the ruleIdentifier character
+        i++;
+
         while (production[i] != '\0') {
-            if (production[i] == current->ruleIdentifier[0]) {
+            if (production[i] == '|') {
+                // Copy the '|' directly
+                newProduction[j++] = production[i++];
+            } else {
+                // Group the characters until the next '|' or end of string
                 newProduction[j++] = '(';
-                newProduction[j++] = production[i];
-                newProduction[j++] = '|';
-                i++;
                 while (production[i] != '\0' && production[i] != '|') {
                     newProduction[j++] = production[i++];
                 }
                 newProduction[j++] = ')';
-            } else {
-                newProduction[j++] = production[i++];
             }
         }
         newProduction[j] = '\0';
+
         strcpy(current->production, newProduction);
         free(newProduction);
         current = current->next;
     }
 }
-
 // Agrega llaves solo alrededor de no terminales válidos
 void addBracesToNonTerminals(Node *head) {
     Node *current = head;
