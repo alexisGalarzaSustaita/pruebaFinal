@@ -13,7 +13,7 @@ int main() {
     fclose(grammar);
 
     eliminateSpacesAndPipes(head);
-    eliminateAndGroupRuleIdentifier(head);
+    //eliminateAndGroupRuleIdentifier(head);
     //addBracesToNonTerminals(head);
     //integrateProductions(head);
     // Output the contents of the linked list
@@ -141,23 +141,27 @@ void appendOrUpdateNode(Node **head, const char *ruleIdentifier, const char *pro
 // Corrige eliminar espacios y tuberías solo cuando sea necesario
 void eliminateSpacesAndPipes(Node *head) {
     Node *current = head;
+
     while (current != NULL) {
         char *production = current->production;
         char *newProduction = (char *)malloc(strlen(production) + 1);
         int count1 = 0, count2 = 0;
 
         while (production[count1] != '\0') {
-            if (!(production[count1] == ' ' && (count1 == 0 || production[count1 - 1] == ' ' || production[count1 + 1] == ' '))) {
+            if (production[count1] != ' ' && production[count1] != '|') {
                 newProduction[count2++] = production[count1];
             }
             count1++;
         }
+
         newProduction[count2] = '\0';
         strcpy(current->production, newProduction);
         free(newProduction);
+
         current = current->next;
     }
 }
+
 
 // Agrupa reglas con identificadores similares usando paréntesis de forma condicional
 void eliminateAndGroupRuleIdentifier(Node *head) {
@@ -167,7 +171,6 @@ void eliminateAndGroupRuleIdentifier(Node *head) {
         char *newProduction = (char *)malloc(strlen(production) * 2);
         int i = 0, j = 0;
 
-        // Skip the ruleIdentifier character
         i++;
 
         while (production[i] != '\0') {
