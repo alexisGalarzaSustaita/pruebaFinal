@@ -1,7 +1,7 @@
 #include "main.h"
 
 int main() {
-    FILE *grammar = fopen("gramatica.txt", "r");
+    FILE *grammar = fopen("gramatica2.txt", "r");
 
     if (grammar == NULL) {
         perror("Error opening the file");
