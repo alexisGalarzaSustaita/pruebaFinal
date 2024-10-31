@@ -223,17 +223,18 @@ void agregarProducciones(Node* head) {
     Node* current = head;
     while (current != NULL) {
         char *production = current->production;
-        // Usar un StringBuilder para construir la nueva producción
-        StringBuilder builder = createStringBuilder();
-        append(&builder, production);
+        char nuevaProduccion[1000];
+        strcpy(nuevaProduccion, production);
 
-        // ... (lógica para expandir las producciones, evitando ciclos)
+        Node *temp = head;
+        while (temp != NULL) {
+            if (strstr(production, temp->ruleIdentifier) != NULL) {
+                strcat(nuevaProduccion, temp->production);
+            }
+            temp = temp->next;
+        }
 
-        // Asignar la nueva producción al nodo
-        free(current->production);
-        current->production = toString(&builder);
-        freeStringBuilder(&builder);
-
+        strcpy(current->production, nuevaProduccion);
         current = current->next;
     }
-}
+}    
